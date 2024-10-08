@@ -18,7 +18,7 @@ jobs:
         image: mvertes/alpine-mongo
         ports:
           - 27018:27017
-        options: --health-cmd='mongo --eval "db.adminCommand('ping')" || exit 1' --health-interval=10s --health-timeout=5s --health-retries=5
+        options: --health-cmd="mongo --eval 'db.adminCommand({ping: 1})' || exit 1" --health-interval=10s --health-timeout=5s --health-retries=5
 
       rabbitmq:
         image: rabbitmq:alpine
