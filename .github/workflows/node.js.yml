@@ -30,7 +30,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-          cache: 'npm'
       
       - name: Install dependencies for Products service
           working-directory: ./products
