@@ -14,18 +14,50 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+    services:
+      mongo: 
+        image: mvertes/alpine-mongo
+        ports:
+          - 27018:27017
+        options: --health-cmd='mongo --eval "db.adminCommand('ping')" || exit 1' --health-interval=10s --health-timeout=5s --health-retries=5
+
+      rabbitmq:
+        image: rabbitmq:alpine
+        ports:
+          - 5672:5672
+        options: --health-cmd='rabbitmqctl status' --health-interval=10s --health-timeout=5s --health-retries=5
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
+      - name: Checkout code
+        uses: actions/checkout@v3
+          cache: 'npm'
+      
+      - name: Install dependencies for Products service
+          working-directory: ./products
+          run: npm install
+
+      - name: Install dependencies for Shopping service
+        working-directory: ./shopping
+        run: npm install
+
+      - name: Install dependencies for Customer service
+        working-directory: ./customer
+        run: npm install
+
+      - name: Run tests for Products service
+        working-directory: ./products
+        run: npm test
+
+      - name: Run tests for Shopping service
+        working-directory: ./shopping
+        run: npm test
+
+      - name: Run tests for Customer service
+        working-directory: ./customer
+        run: npm test
+
+      - name: Build Docker images
+        run: docker-compose -f docker-compose.yml build
+
+      - name: Run Docker containers
+        run: docker-compose -f docker-compose.yml up -d
